@@ -2,23 +2,27 @@ import { Cliente } from "./classes.js";
 import { criarElementoCliente } from "./utils.js";
 
 const clientList = document.querySelector(".client-list tbody");
-const API_URL = "https://crudcrud.com/api/57e1310af0e048c591c9ee7981e05541/clientes";
+const API_URL = "https://crudcrud.com/api/ebe2c793a2a9496cb7f02b5bcd81af94/clientes";
 
+// Renderiza a lista de clientes recebida da API
 function renderListaClientes(clientes) {
     clientList.innerHTML = "";
-    clientes.forEach(({ cliente, emailCliente, _id }) => {
-        const c = new Cliente(cliente, emailCliente, _id);
+    clientes.forEach((data) => {
+        const c = new Cliente(data.cliente, data.emailCliente, data._id);
         const item = criarElementoCliente(c, deletarCliente);
         clientList.appendChild(item);
     });
 }
 
+// Busca clientes da API ao carregar a página
 function carregarClientes() {
     fetch(API_URL)
         .then(res => res.json())
-        .then(renderListaClientes);
+        .then(renderListaClientes)
+        .catch(error => console.error("Erro ao carregar clientes:", error));
 }
 
+// Envia novo cliente para a API
 function cadastrarCliente(event) {
     event.preventDefault();
     const nome = document.getElementById("name").value.trim();
@@ -34,20 +38,21 @@ function cadastrarCliente(event) {
         body: JSON.stringify({ cliente: cliente.nome, emailCliente: cliente.email })
     })
     .then(res => res.json())
-    .then(({ cliente, emailCliente, _id }) => {
-        const novoCliente = new Cliente(cliente, emailCliente, _id);
+    .then((data) => {
+        const novoCliente = new Cliente(data.cliente, data.emailCliente, data._id);
         const item = criarElementoCliente(novoCliente, deletarCliente);
         clientList.appendChild(item);
-
         document.getElementById("clientForm").reset();
-    });
+    })
+    .catch(error => console.error("Erro ao cadastrar cliente:", error));
 }
 
+// Deleta cliente da API e da tabela
 function deletarCliente(id, itemRow) {
     fetch(`${API_URL}/${id}`, { method: "DELETE" })
-        .then(() => itemRow.remove());
+        .then(() => itemRow.remove())
+        .catch(error => console.error("Erro ao deletar cliente:", error));
 }
 
 document.getElementById("clientForm").addEventListener("submit", cadastrarCliente);
-
 carregarClientes();
